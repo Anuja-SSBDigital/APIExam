@@ -20,6 +20,8 @@ builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IDwnldExmFrmService, DwnldExmFrmService>();
 builder.Services.AddScoped<IExaminationService, ExaminationService>();
 
+builder.Services.AddScoped<IExamFormService, ExamFormService>();
+
 
 var app = builder.Build();
 
@@ -32,7 +34,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ErrorExceptionHandling>();
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.MapControllers();
 
