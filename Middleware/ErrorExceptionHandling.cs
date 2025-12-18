@@ -35,7 +35,12 @@
                 return;
             }
 
-            if (path.Contains("/api/examination/examformdetails"))
+            if (path.Contains("/api/examform/exam-list"))
+            {
+                await _next(context);
+                return;
+            }
+            if (path.Contains("/api/ExamForm/GetStudentExamList"))
             {
                 await _next(context);
                 return;
