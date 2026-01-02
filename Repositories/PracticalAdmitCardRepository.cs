@@ -13,13 +13,13 @@ namespace APIExam.Repositories
             _context = context;
         }
 
-
         public async Task<List<PracticalAdmitCardDTO>> GetPracticalAdmitCardAsync(
             int collegeId, int facultyId, int examId)
         {
 
             return await _context.PracticalAdmitCards
                .FromSqlRaw(
+
                    @"EXEC sp_GetExamDummyAdmitCardData
                         @Fk_CollegeId={0},
                         @Fk_FacultyId={1},
@@ -30,18 +30,6 @@ namespace APIExam.Repositories
                .AsNoTracking()
                .ToListAsync();
 
-
-            //return await _context.PracticalAdmitCards
-            //    .FromSqlRaw(
-            //        @"EXEC sp_GetExamDummyAdmitCardData
-            //            @Fk_CollegeId={0},
-            //            @Fk_FacultyId={1},
-            //            @ExamId={2},
-            //            @IsPractical=1,
-            //            @IsTheory=NULL",
-            //        collegeId, facultyId, examId)
-            //    .AsNoTracking()
-            //    .ToListAsync();
         }
     }
 }
