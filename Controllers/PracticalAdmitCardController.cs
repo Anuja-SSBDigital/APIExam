@@ -9,10 +9,13 @@ namespace APIExam.Controllers
     {
         private readonly IPracticalAdmitCardService _service;
 
+
         public PracticalAdmitCardController(IPracticalAdmitCardService service)
         {
             _service = service;
         }
+
+
 
         [HttpGet("Get")]
         public async Task<IActionResult> GetPracticalAdmitCard(
