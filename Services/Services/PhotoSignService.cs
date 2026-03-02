@@ -1,12 +1,11 @@
 ﻿using APIExam.Data;
 using APIExam.Model.DTOs;
 using APIExam.Services.IServices;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace APIExam.Services.Services
 {
-    public class PhotoSignService: IPhotoSignService
+    public class PhotoSignService : IPhotoSignService
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
@@ -17,58 +16,44 @@ namespace APIExam.Services.Services
             _env = env;
         }
 
-        public async Task<string> UploadPhotoSignatureAsycn(PhotoSignDTO photoSignDTO)
+        public async Task<string> UploadPhotoSignatureAsync(PhotoSignDTO dto)
         {
-            if (photoSignDTO.StudentPhotoPath == null || photoSignDTO.StudentSignaturePath == null)
+            if (dto.StudentPhotoPath == null || dto.StudentSignaturePath == null)
                 throw new Exception("Photo and Signature are required");
 
-            var student = await _context.PhotoSignatureModels
-                .FirstOrDefaultAsync(x => x.Pk_StudentId == photoSignDTO.Pk_StudentId);
+            var student = await _context.Students
+                .FirstOrDefaultAsync(x => x.Pk_StudentId == dto.Pk_StudentId);
 
             if (student == null)
                 throw new Exception("Student not found");
 
-            // Save files
-            string photoPath = await SaveFile(photoSignDTO.StudentPhotoPath, "Photos");
-            string signaturePath = await SaveFile(photoSignDTO.StudentSignaturePath, "Signatures");
-
-            // Assign paths to entity
-            student.StudentPhotoPath = photoPath;
-            student.StudentSignaturePath = signaturePath;
+            student.StudentPhotoPath = await SaveFile(dto.StudentPhotoPath, "Photos");
+            student.StudentSignaturePath = await SaveFile(dto.StudentSignaturePath, "Signatures");
 
             await _context.SaveChangesAsync();
 
             return "Photo & Signature uploaded successfully";
         }
 
-
         private async Task<string> SaveFile(IFormFile file, string folderName)
         {
-            string webRoot = _env.WebRootPath;
+            string root = _env.WebRootPath ?? throw new Exception("wwwroot not found");
 
-            if (string.IsNullOrEmpty(webRoot))
-                throw new Exception("wwwroot folder not found.");
+            string path = Path.Combine(root, "uploads", folderName);
+            Directory.CreateDirectory(path);
 
-            string folderPath = Path.Combine(webRoot, "uploads", folderName);
+            string ext = Path.GetExtension(file.FileName).ToLower();
+            if (!new[] { ".jpg", ".jpeg", ".png" }.Contains(ext))
+                throw new Exception("Only JPG, JPEG, PNG allowed");
 
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
+            if (file.Length > 1024 * 1024)   
+                throw new Exception("File must be under 1MB");
 
-            string extension = Path.GetExtension(file.FileName).ToLower();
+            string fileName = $"{Guid.NewGuid()}{ext}";
+            string fullPath = Path.Combine(path, fileName);
 
-            if (extension != ".jpg" && extension != ".jpeg" && extension != ".png")
-                throw new Exception("Only JPG/JPEG/PNG files allowed.");
-
-            if (file.Length > 1 * 1024 * 1024)
-                throw new Exception("File size must be under 1 MB.");
-
-            string fileName = Guid.NewGuid() + extension;
-            string fullPath = Path.Combine(folderPath, fileName);
-
-            using (var stream = new FileStream(fullPath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            using var stream = new FileStream(fullPath, FileMode.Create);
+            await file.CopyToAsync(stream);
 
             return $"/uploads/{folderName}/{fileName}";
         }
