@@ -1,7 +1,6 @@
 ﻿using APIExam.Model.DTOs;
 using APIExam.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIExam.Controllers
@@ -17,14 +16,18 @@ namespace APIExam.Controllers
             _photoSignService = photoSignService;
         }
 
-
+    
+        
         [AllowAnonymous]
         [HttpPost("Upload-PhotoSign")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadPhotoSign([FromForm] PhotoSignDTO photoSignDTO)
         {
             try
             {
-                var result = await _photoSignService.UploadPhotoSignatureAsycn(photoSignDTO);
+                var result = await _photoSignService
+                    .UploadPhotoSignatureAsync(photoSignDTO);
+
                 return Ok(new { message = result });
             }
             catch (Exception ex)
